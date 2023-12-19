@@ -19,7 +19,6 @@ public class CircularService {
     }
 
 
-
     public void external() {
         log.info("외부 메소드 호출 ");
         service.internal();

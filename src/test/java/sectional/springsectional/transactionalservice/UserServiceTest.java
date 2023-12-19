@@ -14,7 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import sectional.springsectional.service.CircularService;
+import sectional.springsectional.apply.InternalCallService;
 
 
 @Slf4j
@@ -25,9 +25,24 @@ public class UserServiceTest {
     @Autowired
     PlatformTransactionManager manager;
 
+    @Autowired
+    InternalCallService calls;
 
     @Autowired
     Box box;
+
+
+    @Test
+    @DisplayName("트랜잭션 적용하지 않은 메소드가 내부 메소드 호출")
+    public void externalService() {
+        calls.external();
+    }
+
+    @Test
+    @DisplayName("트랜잭션 적용한 메소드가 내부 메소드 호출")
+    public void internalService() {
+        calls.internal();
+    }
 
     @Test
     public void externalExecution() {
@@ -53,20 +68,21 @@ public class UserServiceTest {
 
         public void external() {
             log.info("외부 메소드 호출 ");
-            print();
+            print(); //false
+            printRead(); //false
         }
 
         @Transactional
         public void internal() {
             log.info("내부 메소드 호출");
-            print();
-            printRead();
+            print(); //ture
+            printRead(); //false
         }
 
         @Transactional(readOnly = true)
         public void readOnlyTx() {
             log.info("읽기 전용 메소드 호출 ");
-            printRead();
+            printRead(); //ture
         }
 
 
@@ -78,6 +94,7 @@ public class UserServiceTest {
 
         public void printRead() {
             boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+
             log.info("읽기 전용인가? ={} " , readOnly);
         }
 
